@@ -1,26 +1,52 @@
-import React, { useReducer } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import React, { useReducer, useEffect } from "react";
+import { StyleSheet, Text, View, TextInput } from "react-native";
 
 const INPUT_CHANGE = "INPUT_CHANGE";
+const INPUT_BLUR = "INPUT_BLUR";
 
 const inputReducer = (state, action) => {
   switch (action.type) {
     case INPUT_CHANGE:
-      return;
+      return {
+        ...state,
+        value: action.value,
+        isValid: action.isValid,
+      };
+    case INPUT_BLUR:
+      return {
+        ...state,
+        touched: true,
+      };
     default:
       return state;
   }
 };
 
 const Input = (props) => {
-  const { label, errorText, initialValue, initiallyValid } = props;
+  const {
+    label,
+    errorText,
+    initialValue,
+    initiallyValid,
+    onInputChange,
+    id,
+  } = props;
 
   const [inputState, dispatch] = useReducer(inputReducer, {
     value: initialValue ? initialValue : "",
     isValid: initiallyValid,
     touched: false,
   });
+
+  useEffect(() => {
+    // the useEffect runs when the inputState value or isValid changes
+    if (inputState.touched) {
+      onInputChange(id, inputState.value, inputState.isValid);
+    }
+  }, [id, inputState, onInputChange]);
+
   const textChangeHandler = (text) => {
+    // this is the input validation logic
     const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     let isValid = true;
     if (props.required && text.trim().length === 0) {
@@ -41,25 +67,22 @@ const Input = (props) => {
     dispatch({ type: INPUT_CHANGE, value: text, isValid: isValid });
   };
 
+  const lostFocusHandler = () => {
+    dispatch({ type: INPUT_BLUR });
+  };
+
   return (
     <View style={styles.formControl}>
       <Text style={styles.label}>{label}</Text>
       <TextInput
         {...props}
         style={styles.title} // this is coming from out reducer
-        value={formState.inputValues.title}
+        value={inputState.value}
         // onChangeText is simple prop, that gives whatever is the value of the input field on every change.
-        onChangeText={(text) => textChangeHandler()}
-        /*
-          keyboardType="default"
-          autoCapitalize="sentences"
-          autoCorrect
-          returnKeyType="next"
-          onEndEditing={() => console.log("onEndEditing")} // this fires when the keyboard goes away or is done
-          onSubmitEditing={() => console.log("onSubmitEditing")} // this occurs when the user presses the returnKey
-        */
+        onChangeText={textChangeHandler}
+        onBlur={lostFocusHandler}
       />
-      {!formState.inputValidities.title && <Text>{errorText}</Text>}
+      {!inputState.isValid && <Text>{errorText}</Text>}
     </View>
   );
 };
@@ -81,3 +104,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
 });
+
+/* additional TextInput props
+  keyboardType="default"
+  autoCapitalize="sentences"
+  autoCorrect
+  returnKeyType="next"
+  onEndEditing={() => console.log("onEndEditing")} // this fires when the keyboard goes away or is done
+  onSubmitEditing={() => console.log("onSubmitEditing")} // this occurs when the user presses the returnKey
+*/

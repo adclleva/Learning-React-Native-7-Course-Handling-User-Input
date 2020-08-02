@@ -1,13 +1,5 @@
 import React, { useEffect, useCallback, useReducer } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  ScrollView,
-  Platform,
-  Alert,
-} from "react-native";
+import { StyleSheet, View, ScrollView, Platform, Alert } from "react-native";
 
 import { HeaderButtons, Item } from "react-navigation-header-buttons";
 import HeaderButton from "../../components/UI/HeaderButton";
@@ -94,23 +86,13 @@ const EditProductScreen = (props) => {
     formIsValid: editedProduct ? true : false,
   });
 
-  /* this is replaces by the useReducer
-  const [title, setTitle] = useState(editedProduct ? editedProduct.title : "");
-  const [titleIsValid, setTitleIsValid] = useState(false);
-
-  const [imageUrl, setImageUrl] = useState(
-    editedProduct ? editedProduct.imageUrl : ""
-  );
-  const [price, setPrice] = useState(""); // we don't edit the price but to create it
-  const [description, setDescription] = useState(
-    editedProduct ? editedProduct.description : ""
-  );
-  */
-
+  console.log("formState", formState);
+  console.log("formState.formIsValid", formState.formIsValid);
   /**
    * we use this useEffect and useCallback pattern to pass the submitHandler
    * to our params, the useCallback makes sure the function isn't recreated
    * so it wont be entering an infinite loop
+   * We check validity when submitting but not for every input itself, it will be within the component
    */
   const submitHandler = useCallback(() => {
     // if the title is not valid, we stop continuing the function execution
@@ -159,51 +141,77 @@ const EditProductScreen = (props) => {
     props.navigation.setParams({ submit: submitHandler }); // now submit is a parameter that can be retrieved within the header
   }, [submitHandler]);
 
-  // this will handle the text input changing
-  const textChangeHandler = (inputIdentifier, text) => {
-    let isValid = false;
-    // trim takes away the whitespace and checks if the text is empty
-    if (text.trim().length > 0) {
-      // setTitleIsValid(false);
-      isValid = true;
-    }
+  /**
+   * this will handle the text input changing and will use the useCallback to avoid rec-creating the function
+   * because we get all the values from arguments
+   */
 
-    // setTitle(text);
-    // we dispatch this reducer to handle our complex local state
-    dispatchFormState({
-      type: FORM_INPUT_UPDATE,
-      value: text,
-      isValid: isValid,
-      input: inputIdentifier,
-    });
-  };
+  const inputChangeHandler = useCallback(
+    (inputIdentifier, inputValue, inputValidity) => {
+      /**
+       * we are forwarding the input information that we are getting from the component
+       * we dispatch this reducer to handle our complex local state
+       */
+
+      dispatchFormState({
+        type: FORM_INPUT_UPDATE,
+        value: inputValue,
+        isValid: inputValidity,
+        input: inputIdentifier,
+      });
+    },
+    [dispatchFormState]
+  );
 
   return (
     <ScrollView>
       <View style={styles.form}>
         <Input
+          /**
+           * we refactored the onInputChange prop because it will re-create a
+           * function binding on ever render cycle
+           * thus we need to have an id passed down instead
+           * because the useCallback is not having an effect
+           * to avoid an infinite rendering cycle whenever we use an anonymous
+           * function or binding
+           */
+          id="title"
           label="Title"
           errorText="Please enter a valid title!"
           keyboardType="default"
           autoCapitalize="sentences"
           autoCorrect
           returnKeyType="next"
+          onInputChange={inputChangeHandler}
+          initialValue={editedProduct ? editedProduct.title : ""}
+          initiallyValid={!!editedProduct}
+          required
         />
         <Input
+          id="imageUrl"
           label="Image Url"
           errorText="Please enter a valid image url!"
           keyboardType="default"
           returnKeyType="next"
+          onInputChange={inputChangeHandler}
+          initialValue={editedProduct ? editedProduct.imageUrl : ""}
+          initiallyValid={!!editedProduct} // this casts it as a boolean value
+          required
         />
         {editedProduct ? null : (
           <Input
+            id="price"
             label="Price"
             errorText="Please enter a valid price!"
             keyboardType="decimal-pad"
             returnKeyType="next"
+            onInputChange={inputChangeHandler}
+            required
+            min={0.1}
           />
         )}
         <Input
+          id="description"
           label="Description"
           errorText="Please enter a valid description!"
           keyboardType="default"
@@ -212,6 +220,11 @@ const EditProductScreen = (props) => {
           multiline
           numberOfLines={3}
           returnKeyType="next"
+          onInputChange={inputChangeHandler}
+          initialValue={editedProduct ? editedProduct.description : ""}
+          initiallyValid={!!editedProduct}
+          required
+          minLength={5}
         />
       </View>
     </ScrollView>
