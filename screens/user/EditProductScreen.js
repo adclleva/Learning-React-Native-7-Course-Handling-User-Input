@@ -82,6 +82,12 @@ const EditProductScreen = (props) => {
             value={title}
             onChangeText={(text) => setTitle(text)}
             // onChangeText is simple prop, that gives whatever is the value of the input field on every change.
+            keyboardType="default"
+            autoCapitalize="sentences"
+            autoCorrect
+            returnKeyType="next"
+            onEndEditing={() => console.log("onEndEditing")} // this fires when the keyboard goes away or is done
+            onSubmitEditing={() => console.log("onSubmitEditing")} // this occurs when the user presses the returnKey
           />
         </View>
         <View style={styles.formControl}>
@@ -99,6 +105,7 @@ const EditProductScreen = (props) => {
               style={styles.input}
               value={price}
               onChangeText={(text) => setPrice(text)}
+              keyboardType="decimal-pad"
             />
           </View>
         )}

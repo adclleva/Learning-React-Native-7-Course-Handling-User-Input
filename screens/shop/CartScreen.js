@@ -77,7 +77,7 @@ export default CartScreen;
 
 // to set up the header title for the nav bar
 CartScreen.navigationOptions = {
-  headerTitle: "Your Orders",
+  headerTitle: "Your Order",
 };
 
 const styles = StyleSheet.create({
