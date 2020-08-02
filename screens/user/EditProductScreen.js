@@ -6,6 +6,7 @@ import {
   TextInput,
   ScrollView,
   Platform,
+  Alert,
 } from "react-native";
 
 import { HeaderButtons, Item } from "react-navigation-header-buttons";
@@ -25,6 +26,8 @@ const EditProductScreen = (props) => {
   const dispatch = useDispatch();
 
   const [title, setTitle] = useState(editedProduct ? editedProduct.title : "");
+  const [titleIsValid, setTitleIsValid] = useState(false);
+
   const [imageUrl, setImageUrl] = useState(
     editedProduct ? editedProduct.imageUrl : ""
   );
@@ -39,6 +42,13 @@ const EditProductScreen = (props) => {
    * so it wont be entering an infinite loop
    */
   const submitHandler = useCallback(() => {
+    // if the title is not valid, we stop continuing the function execution
+    if (!titleIsValid) {
+      Alert.alert("Wrong input!", "Please check the errors in the form.", [
+        { text: "Okay" },
+      ]);
+      return;
+    }
     // this will check if we are editing or creating by checking editedProduct is not undefined
     if (editedProduct) {
       dispatch(
@@ -72,6 +82,16 @@ const EditProductScreen = (props) => {
     props.navigation.setParams({ submit: submitHandler }); // now submit is a parameter that can be retrieved within the header
   }, [submitHandler]);
 
+  const titleChangeHandler = (text) => {
+    // trim takes away the whitespace and checks if the text is empty
+    if (text.trim().length === 0) {
+      setTitleIsValid(false);
+    } else {
+      setTitleIsValid(true);
+    }
+    setTitle(text);
+  };
+
   return (
     <ScrollView>
       <View style={styles.form}>
@@ -80,7 +100,7 @@ const EditProductScreen = (props) => {
           <TextInput
             style={styles.input}
             value={title}
-            onChangeText={(text) => setTitle(text)}
+            onChangeText={(text) => titleChangeHandler(text)}
             // onChangeText is simple prop, that gives whatever is the value of the input field on every change.
             keyboardType="default"
             autoCapitalize="sentences"
@@ -89,6 +109,7 @@ const EditProductScreen = (props) => {
             onEndEditing={() => console.log("onEndEditing")} // this fires when the keyboard goes away or is done
             onSubmitEditing={() => console.log("onSubmitEditing")} // this occurs when the user presses the returnKey
           />
+          {!titleIsValid && <Text>Please Enter a Valid Title</Text>}
         </View>
         <View style={styles.formControl}>
           <Text style={styles.label}>Image URL</Text>
