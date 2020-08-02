@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useReducer } from "react";
 import {
   StyleSheet,
   Text,
@@ -14,6 +14,18 @@ import HeaderButton from "../../components/UI/HeaderButton";
 import { useSelector, useDispatch } from "react-redux";
 import * as productActions from "../../store/actions/product";
 
+/**
+ * We create this outside the component to avoid recreation to improve performance
+ * this reducer is not related to redux, but is a another way to handle complex state logic
+ */
+
+const FORM_INPUT_UPDATE = "UPDATE";
+
+const formReducer = (state, action) => {
+  if (action.type === FORM_INPUT_UPDATE) {
+  }
+};
+
 const EditProductScreen = (props) => {
   // this could be null if the user is just creating with no params passed down
   const productId = props.navigation.getParam("productId");
@@ -25,6 +37,27 @@ const EditProductScreen = (props) => {
 
   const dispatch = useDispatch();
 
+  /**
+   * this useReducer hook takes in a function and an initial state
+   * it gets the state snapshot
+   */
+  const [formState, dispatchFormState] = useReducer(formReducer, {
+    inputValues: {
+      title: editedProduct ? editedProduct.title : "",
+      imageUrl: editedProduct ? editedProduct.imageUrl : "",
+      description: editedProduct ? editedProduct.description : "",
+      price: "",
+    },
+    inputValidities: {
+      title: editedProduct ? true : false,
+      imageUrl: editedProduct ? true : false,
+      description: editedProduct ? true : false,
+      price: editedProduct ? true : false,
+    },
+    formIsValid: editedProduct ? true : false,
+  });
+
+  /* this is replaces by the useReducer
   const [title, setTitle] = useState(editedProduct ? editedProduct.title : "");
   const [titleIsValid, setTitleIsValid] = useState(false);
 
@@ -35,6 +68,7 @@ const EditProductScreen = (props) => {
   const [description, setDescription] = useState(
     editedProduct ? editedProduct.description : ""
   );
+  */
 
   /**
    * we use this useEffect and useCallback pattern to pass the submitHandler
@@ -69,9 +103,9 @@ const EditProductScreen = (props) => {
     props.navigation.goBack();
     /**
      * we need to make sure to add the dependencies because the useCallback function
-     * won't be recreated when the user enters in the data
+     * won't be recreated when the user enters in the data or when any of these changes
      */
-  }, [dispatch, productId, title, description, imageUrl, price]);
+  }, [dispatch, productId, title, description, imageUrl, price, titleIsValid]);
 
   /**
    * this will render a function after every render cycle
@@ -83,13 +117,20 @@ const EditProductScreen = (props) => {
   }, [submitHandler]);
 
   const titleChangeHandler = (text) => {
+    let isValid = false;
     // trim takes away the whitespace and checks if the text is empty
-    if (text.trim().length === 0) {
-      setTitleIsValid(false);
-    } else {
-      setTitleIsValid(true);
+    if (text.trim().length > 0) {
+      // setTitleIsValid(false);
+      isValid = true;
     }
-    setTitle(text);
+
+    // setTitle(text);
+    dispatchFormState({
+      type: FORM_INPUT_UPDATE,
+      value: text,
+      isValid: isValid,
+      input: "title",
+    });
   };
 
   return (
