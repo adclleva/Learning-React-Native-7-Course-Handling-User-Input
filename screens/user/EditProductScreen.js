@@ -1,5 +1,12 @@
 import React, { useEffect, useCallback, useReducer } from "react";
-import { StyleSheet, View, ScrollView, Platform, Alert } from "react-native";
+import {
+  StyleSheet,
+  View,
+  ScrollView,
+  Platform,
+  Alert,
+  KeyboardAvoidingView,
+} from "react-native";
 
 import { HeaderButtons, Item } from "react-navigation-header-buttons";
 import HeaderButton from "../../components/UI/HeaderButton";
@@ -86,8 +93,6 @@ const EditProductScreen = (props) => {
     formIsValid: editedProduct ? true : false,
   });
 
-  console.log("formState", formState);
-  console.log("formState.formIsValid", formState.formIsValid);
   /**
    * we use this useEffect and useCallback pattern to pass the submitHandler
    * to our params, the useCallback makes sure the function isn't recreated
@@ -164,70 +169,76 @@ const EditProductScreen = (props) => {
   );
 
   return (
-    <ScrollView>
-      <View style={styles.form}>
-        <Input
-          /**
-           * we refactored the onInputChange prop because it will re-create a
-           * function binding on ever render cycle
-           * thus we need to have an id passed down instead
-           * because the useCallback is not having an effect
-           * to avoid an infinite rendering cycle whenever we use an anonymous
-           * function or binding
-           */
-          id="title"
-          label="Title"
-          errorText="Please enter a valid title!"
-          keyboardType="default"
-          autoCapitalize="sentences"
-          autoCorrect
-          returnKeyType="next"
-          onInputChange={inputChangeHandler}
-          initialValue={editedProduct ? editedProduct.title : ""}
-          initiallyValid={!!editedProduct}
-          required
-        />
-        <Input
-          id="imageUrl"
-          label="Image Url"
-          errorText="Please enter a valid image url!"
-          keyboardType="default"
-          returnKeyType="next"
-          onInputChange={inputChangeHandler}
-          initialValue={editedProduct ? editedProduct.imageUrl : ""}
-          initiallyValid={!!editedProduct} // this casts it as a boolean value
-          required
-        />
-        {editedProduct ? null : (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={100}
+    >
+      <ScrollView>
+        <View style={styles.form}>
           <Input
-            id="price"
-            label="Price"
-            errorText="Please enter a valid price!"
-            keyboardType="decimal-pad"
+            /**
+             * we refactored the onInputChange prop because it will re-create a
+             * function binding on ever render cycle
+             * thus we need to have an id passed down instead
+             * because the useCallback is not having an effect
+             * to avoid an infinite rendering cycle whenever we use an anonymous
+             * function or binding
+             */
+            id="title"
+            label="Title"
+            errorText="Please enter a valid title!"
+            keyboardType="default"
+            autoCapitalize="sentences"
+            autoCorrect
             returnKeyType="next"
             onInputChange={inputChangeHandler}
+            initialValue={editedProduct ? editedProduct.title : ""}
+            initiallyValid={!!editedProduct}
             required
-            min={0.1}
           />
-        )}
-        <Input
-          id="description"
-          label="Description"
-          errorText="Please enter a valid description!"
-          keyboardType="default"
-          autoCapitalize="sentences"
-          autoCorrect
-          multiline
-          numberOfLines={3}
-          returnKeyType="next"
-          onInputChange={inputChangeHandler}
-          initialValue={editedProduct ? editedProduct.description : ""}
-          initiallyValid={!!editedProduct}
-          required
-          minLength={5}
-        />
-      </View>
-    </ScrollView>
+          <Input
+            id="imageUrl"
+            label="Image Url"
+            errorText="Please enter a valid image url!"
+            keyboardType="default"
+            returnKeyType="next"
+            onInputChange={inputChangeHandler}
+            initialValue={editedProduct ? editedProduct.imageUrl : ""}
+            initiallyValid={!!editedProduct} // this casts it as a boolean value
+            required
+          />
+          {editedProduct ? null : (
+            <Input
+              id="price"
+              label="Price"
+              errorText="Please enter a valid price!"
+              keyboardType="decimal-pad"
+              returnKeyType="next"
+              onInputChange={inputChangeHandler}
+              required
+              min={0.1}
+            />
+          )}
+          <Input
+            id="description"
+            label="Description"
+            errorText="Please enter a valid description!"
+            keyboardType="default"
+            autoCapitalize="sentences"
+            autoCorrect
+            multiline
+            numberOfLines={3}
+            returnKeyType="next"
+            onInputChange={inputChangeHandler}
+            initialValue={editedProduct ? editedProduct.description : ""}
+            initiallyValid={!!editedProduct}
+            required
+            minLength={5}
+          />
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 

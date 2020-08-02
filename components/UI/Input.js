@@ -67,6 +67,7 @@ const Input = (props) => {
     dispatch({ type: INPUT_CHANGE, value: text, isValid: isValid });
   };
 
+  // to handle when the user loses focus of the input field
   const lostFocusHandler = () => {
     dispatch({ type: INPUT_BLUR });
   };
@@ -76,13 +77,17 @@ const Input = (props) => {
       <Text style={styles.label}>{label}</Text>
       <TextInput
         {...props}
-        style={styles.title} // this is coming from out reducer
+        style={styles.input} // this is coming from out reducer
         value={inputState.value}
         // onChangeText is simple prop, that gives whatever is the value of the input field on every change.
         onChangeText={textChangeHandler}
         onBlur={lostFocusHandler}
       />
-      {!inputState.isValid && <Text>{errorText}</Text>}
+      {!inputState.isValid && inputState.touched && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{errorText}</Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -102,6 +107,14 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderBottomColor: "#ccc",
     borderBottomWidth: 1,
+  },
+  errorContainer: {
+    marginVertical: 5,
+  },
+  errorText: {
+    fontFamily: "open-sans",
+    color: "red",
+    fontSize: 13,
   },
 });
 
